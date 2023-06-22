@@ -4,10 +4,6 @@ const jsonParser = express.json();
 const fs = require('fs');
 const contentAvailable = require('./keywords.json').content;
 
-// console.log(contentAvailable)
-// let china = contentAvailable.find(e => e.keyword.toLowerCase() == 'Страна'.toLowerCase()).urls
-// console.log(china)
-
 const createHTML = function(textData) {
   let textArray = textData.split(`\n`);
   let resultHTML = `<!DOCTYPE html>
@@ -47,7 +43,6 @@ const createHTML = function(textData) {
 
 serv.post('/search', jsonParser, (request, response) => {
   if (!request.body) return response.sendStatus(400);
-  // console.log(request.body.keyword)
   let result = {urlsAvailable: []};
   let keywordListed = contentAvailable.find(e => e.keyword.toLowerCase() == request.body.keyword.toLowerCase())
   if (keywordListed) {
@@ -58,10 +53,8 @@ serv.post('/search', jsonParser, (request, response) => {
 
 serv.post('/download', jsonParser, (request, response) => {
   if(!request.body) return response.sendStatus(400);
-  console.log(request.body.requiredContent)
   let fileContent = fs.readFileSync(`./content/${request.body.requiredContent.toLowerCase()}.txt`, 'utf8')
   let result = {requiredContent: request.body.requiredContent, textContent: createHTML(fileContent)};
-  console.log(result);
   response.json(result)
 })
 
