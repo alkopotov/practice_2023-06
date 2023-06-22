@@ -1,0 +1,16 @@
+{
+  "content": [
+  {
+    "keyword": "Город",
+    "urls": ["Moscow", "Saint-Petersburg", "Sochi"]
+  }, 
+  {
+    "keyword": "Страна",
+    "urls": ["Russia", "China", "Japan"]
+  },
+  {
+    "keyword": "Автомобиль",
+    "urls": ["Porsche", "Ferrari"]
+  }
+]
+}

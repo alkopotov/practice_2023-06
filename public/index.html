@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Управление контентом</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      gap: 10px;
+    }
+   .search__form {
+    display: flex;
+    max-width: 200px;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .content__available__link, .content__downloaded__link {
+    color: blue;
+    font-size: 18px;
+    width: fit-content;
+    text-decoration-line: underline;
+    cursor: pointer;
+  }
+  </style>
+</head>
+<body>
+  <section class="content__search">
+    <h1>Введите ключевое слово для поиска контента</h1>
+    <form name="searchContent" class="search__form">
+      <label for="keyword">Введите ключевое слово</label><input type="text" name="keyword">
+      <input type="submit" id="submit" value="Искать">
+    </form>
+    <div class="content__available"></div>
+  </section>
+  <section class="content__downloaded">
+
+  </section>
+  <script>
+    const contentAvailable = document.querySelector('.content__available')
+    const contentDownloaded = document.querySelector('.content__downloaded')
+
+    function displayDownloadedLinks() {
+      if (localStorage.length > 0) {
+        contentDownloaded.innerHTML = `<h2>Загруженный контент, доступный для просмотра</h2>`
+        for (let j = 0; j < localStorage.length; j++) {
+          let linkDownloaded = document.createElement('h3');
+          linkDownloaded.className = 'content__downloaded__link';
+          linkDownloaded.textContent = localStorage.key(j);
+          linkDownloaded.addEventListener('click', e => {
+            console.log(e.target.textContent)
+            displayContent(e.target.textContent);
+          })
+          contentDownloaded.append(linkDownloaded);
+        }
+        let buttonClearStorage = document.createElement('button');
+        buttonClearStorage.textContent = "Очистить хранилище";
+        buttonClearStorage.addEventListener('click', e => {
+          localStorage.clear();
+          contentDownloaded.innerHTML = '';
+        })
+        contentDownloaded.append(buttonClearStorage);
+      }
+    }
+    displayDownloadedLinks();
+
+    function displayContent(keyLink) {
+      let contentWindow = window.open('', 'Content', 'width=800,height=600,left=100,top=100,scrollbars=yes,resizable=yes');
+      contentWindow.document.write(localStorage.getItem(keyLink));
+    }
+
+    document.forms[0].lastElementChild.addEventListener('click', function(e) {
+      e.preventDefault();
+      let keyword = document.forms[0].elements["keyword"].value;
+      let reqKeyword = JSON.stringify({keyword: keyword});
+      let request = new XMLHttpRequest();
+      request.open('POST', '/search', true);
+      request.setRequestHeader('Content-Type', 'application/json');
+      request.addEventListener('load', () => {
+        let receivedUrls = JSON.parse(request.response).urlsAvailable;
+        console.log(receivedUrls.length);
+        if (receivedUrls.length < 1 ) {
+          contentAvailable.innerHTML = `<h2>Для ключевого слова ${keyword} контент не найден, введите другое слово</h2> `
+        } else {
+          const urlsDisplay = document.createElement('div')
+          contentAvailable.innerHTML = '<h2>Выберите контент для загрузки</h2>'
+
+          for (url of receivedUrls) {
+            let linkContent = document.createElement('h3')
+            linkContent.textContent = url;
+            linkContent.className = 'content__available__link'
+
+            linkContent.addEventListener('click', function(e) {
+              let reqContent = JSON.stringify({requiredContent: e.target.textContent});
+              console.log(reqContent);
+              let reqDownload = new XMLHttpRequest();
+              reqDownload.open('POST', '/download', true);
+              reqDownload.setRequestHeader('Content-Type', 'application/json');
+              reqDownload.addEventListener('load', () => {
+                let receivedData = JSON.parse(reqDownload.response)
+                // let receivedContent = receivedData.textContent;
+                // let contentHeader = receivedData.requiredContent;
+                // console.log(receivedContent, receivedKeyword);
+                localStorage.setItem(receivedData.requiredContent, receivedData.textContent)
+                displayDownloadedLinks();
+                
+              })
+              reqDownload.send(reqContent);
+            })
+
+            contentAvailable.append(linkContent)
+          }
+        }
+        console.log(receivedUrls)
+        // console.log(typeof receivedUrls)
+        console.info(`${receivedUrls}`) //смотрим ответ сервера
+      });
+      request.send(reqKeyword);
+    })
+  </script>
+</body>
+</html>
