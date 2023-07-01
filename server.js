@@ -53,9 +53,18 @@ serv.post('/search', jsonParser, (request, response) => {
 
 serv.post('/download', jsonParser, (request, response) => {
   if(!request.body) return response.sendStatus(400);
-  let fileContent = fs.readFileSync(`./content/${request.body.requiredContent.toLowerCase()}.txt`, 'utf8')
-  let result = {requiredContent: request.body.requiredContent, textContent: createHTML(fileContent)};
-  response.json(result)
+  let fileContent_ = fs.readFileSync(`./content/${request.body.requiredContent.toLowerCase()}.txt`, 'utf8')
+
+  fs.readFile(`./content/${request.body.requiredContent.toLowerCase()}.txt`, 'utf8', ((err, data) =>  {
+    if (err) {
+      throw err;
+    } else {
+      let result = {requiredContent: request.body.requiredContent, textContent: createHTML(data)}
+      response.json(result)
+    }
+  }))
+  // let result = {requiredContent: request.body.requiredContent, textContent: createHTML(fileContent)};
+  // response.json(result)
 })
 
 serv.get('/', (request, response) => {

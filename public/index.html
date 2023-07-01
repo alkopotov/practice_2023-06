@@ -95,10 +95,13 @@
               reqDownload.open('POST', '/download', true);
               reqDownload.setRequestHeader('Content-Type', 'application/json');
               reqDownload.addEventListener('load', () => {
-                let receivedData = JSON.parse(reqDownload.response)
-                localStorage.setItem(receivedData.requiredContent, receivedData.textContent)
-                displayDownloadedLinks();
-                
+                if (reqDownload.response[0] == `{`) {
+                  let receivedData = JSON.parse(reqDownload.response)
+                  localStorage.setItem(receivedData.requiredContent, receivedData.textContent)
+                  displayDownloadedLinks();
+                } else {
+                  alert('Ошибка сервера, контент не может быть загружен')
+                }
               })
               reqDownload.send(reqContent);
             })
